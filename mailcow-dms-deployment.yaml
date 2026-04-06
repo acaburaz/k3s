@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dms-service
+  namespace: mailcow
+  labels:
+    app: dms
+spec:
+  type: ClusterIP
+  selector:
+    app: dms
+  ports:
+    - name: smtp
+      port: 25
+      targetPort: 25
+      protocol: TCP
+    - name: smtps
+      port: 465
+      targetPort: 465
+      protocol: TCP
+    - name: submission
+      port: 587
+      targetPort: 587
+      protocol: TCP
+    - name: imap
+      port: 143
+      targetPort: 143
+      protocol: TCP
+    - name: imaps
+      port: 993
+      targetPort: 993
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dms
+  namespace: mailcow
+spec:
+  serviceName: dms-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dms
+  template:
+    metadata:
+      labels:
+        app: dms
+    spec:
+      containers:
+      - name: dms
+        image: mailserver/docker-mailserver:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          fsGroup: 101
+        envFrom:
+        - secretRef:
+            name: dms-config
+        env:
+        - name: TZ
+          value: UTC
+        - name: CONTAINER_NAME
+          value: mailserver
+        ports:
+        - name: smtp
+          containerPort: 25
+          protocol: TCP
+        - name: smtps
+          containerPort: 465
+          protocol: TCP
+        - name: submission
+          containerPort: 587
+          protocol: TCP
+        - name: imap
+          containerPort: 143
+          protocol: TCP
+        - name: imaps
+          containerPort: 993
+          protocol: TCP
+        volumeMounts:
+        - name: mail-data
+          mountPath: /var/mail
+        - name: dms-config
+          mountPath: /etc/dms
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - nc -z localhost 25
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - nc -z localhost 143
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      volumes:
+      - name: mail-data
+        persistentVolumeClaim:
+          claimName: dms-mail-data
+      - name: dms-config
+        persistentVolumeClaim:
+          claimName: dms-config
+      - name: tmp
+        emptyDir: {}

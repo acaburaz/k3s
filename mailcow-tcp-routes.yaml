@@ -1,0 +1,73 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: mail-smtp
+  namespace: mailcow
+spec:
+  entryPoints:
+    - smtp
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: dms-service
+          port: 25
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: mail-smtps
+  namespace: mailcow
+spec:
+  entryPoints:
+    - smtps
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: dms-service
+          port: 465
+      tls:
+        passthrough: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: mail-submission
+  namespace: mailcow
+spec:
+  entryPoints:
+    - submission
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: dms-service
+          port: 587
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: mail-imap
+  namespace: mailcow
+spec:
+  entryPoints:
+    - imap
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: dms-service
+          port: 143
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: mail-imaps
+  namespace: mailcow
+spec:
+  entryPoints:
+    - imaps
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: dms-service
+          port: 993
+      tls:
+        passthrough: true
