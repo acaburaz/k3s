@@ -1,0 +1,20 @@
+DKIM Record for gamifying.dev
+
+Add this as a TXT record in GoDaddy:
+
+Name: mail._domainkey
+Value: v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs4gnX5Z08hMy5kK4TYF+lbO/XA4nQeXCPJv7ppEH1mxtj3mIlhfmGap+m4OiweiZQkWVkjTcl9/DiiarqRfIVb+B67G6LN5klWMQyfE7UYToajHv5sZmX1zrGMvujCRNoqDIQA+6cwgUjMK3M4Supx9ODnzHj3Ce5R/DIN7fERbpopb14/56jV58p+Cku3YASX3L0JHbV/erFC3iZMq16YUH41mf0Jng8ormXtXQnBYitLOAYiVr+34i4iZpw47ra2jTCQT6jhYQCX7ZAhb01rCKaxI5PurDJqZXXptVfaZVueJnvecy7K6+sVp4sLyTcrwBmpBq4cug+nmDdxMqEQIDAQAB
+TTL: 3600
+
+Complete DNS Records Needed:
+=============================
+
+| Type | Name | Value |
+|------|------|-------|
+| A | mail | 85.194.34.199 |
+| A | webmail | 85.194.34.199 |
+| MX | @ | mail.gamifying.dev (priority 10) |
+| TXT | @ | v=spf1 mx a ip4:85.194.34.199 ~all |
+| TXT | _dmarc | v=DMARC1; p=quarantine; rua=mailto:postmaster@gamifying.dev |
+| TXT | mail._domainkey | (see DKIM value above) |
+| PTR | (contact VPS provider) | mail.gamifying.dev |

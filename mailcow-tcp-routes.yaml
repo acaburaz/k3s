@@ -25,8 +25,8 @@ spec:
       services:
         - name: dms-service
           port: 465
-      tls:
-        passthrough: true
+  tls:
+    passthrough: true
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRouteTCP
@@ -69,5 +69,5 @@ spec:
       services:
         - name: dms-service
           port: 993
-      tls:
-        passthrough: true
+  tls:
+    passthrough: true
