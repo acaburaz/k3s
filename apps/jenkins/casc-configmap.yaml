@@ -68,7 +68,7 @@ data:
                       url('https://github.com/acaburaz/mynforkort')
                       credentials('mynforkort-scm')
                     }
-                    branch('*/master')
+                    branch('*/main')
                   }
                 }
                 scriptPath('Jenkinsfile')
