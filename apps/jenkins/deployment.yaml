@@ -132,6 +132,9 @@ spec:
           volumeMounts:
             - name: jenkins-data
               mountPath: /var/jenkins_home
+            - name: jenkins-data
+              mountPath: /usr/local/bin/docker
+              subPath: bin/docker
             - name: casc-config
               mountPath: /var/jenkins_home/casc.yaml
               subPath: casc.yaml
