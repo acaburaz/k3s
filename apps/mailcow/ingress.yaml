@@ -1,0 +1,77 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    field.cattle.io/publicEndpoints: '[{"addresses":["192.168.0.134"],"port":80,"protocol":"HTTP","serviceName":"mailcow:cm-acme-http-solver-gtmb7","ingressName":"mailcow:cm-acme-http-solver-fksdt","hostname":"webmail.gamifying.dev","path":"/.well-known/acme-challenge/K2uc-_Fl6ITo3vaz2ylcjc73aFfOcXRll5qNL3cQARk","allNodes":false}]'
+    kubernetes.io/ingress.class: traefik
+    nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0,::/0
+  labels:
+    acme.cert-manager.io/http-domain: '1527580728'
+    acme.cert-manager.io/http-token: '1016991345'
+    acme.cert-manager.io/http01-solver: 'true'
+  name: cm-acme-http-solver-fksdt
+  namespace: mailcow
+spec:
+  rules:
+    - host: webmail.gamifying.dev
+      http:
+        paths:
+          - backend:
+              service:
+                name: cm-acme-http-solver-gtmb7
+                port:
+                  number: 8089
+            path: /.well-known/acme-challenge/K2uc-_Fl6ITo3vaz2ylcjc73aFfOcXRll5qNL3cQARk
+            pathType: Exact
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/publicEndpoints: '[{"addresses":["192.168.0.134"],"port":443,"protocol":"HTTPS","serviceName":"mailcow:roundcube-service","ingressName":"mailcow:mail-ingress","hostname":"mail.gamifying.dev","path":"/","allNodes":false}]'
+  name: mail-ingress
+  namespace: mailcow
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: mail.gamifying.dev
+      http:
+        paths:
+          - backend:
+              service:
+                name: roundcube-service
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - mail.gamifying.dev
+      secretName: mail-tls-cert
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/publicEndpoints: '[{"addresses":["192.168.0.134"],"port":443,"protocol":"HTTPS","serviceName":"mailcow:roundcube-service","ingressName":"mailcow:mailcow-ingress","hostname":"webmail.gamifying.dev","path":"/","allNodes":false}]'
+  name: mailcow-ingress
+  namespace: mailcow
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: webmail.gamifying.dev
+      http:
+        paths:
+          - backend:
+              service:
+                name: roundcube-service
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - webmail.gamifying.dev
+      secretName: mailcow-tls-cert

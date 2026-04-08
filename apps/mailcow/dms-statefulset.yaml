@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dms
+  namespace: mailcow
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: dms
+  serviceName: dms-service
+  template:
+    metadata:
+      labels:
+        app: dms
+    spec:
+      containers:
+        - env:
+            - name: TZ
+              value: UTC
+            - name: CONTAINER_NAME
+              value: mailserver
+          envFrom:
+            - secretRef:
+                name: dms-config
+          image: mailserver/docker-mailserver:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - '-c'
+                - nc -z localhost 25
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: dms
+          ports:
+            - containerPort: 25
+              name: smtp
+              protocol: TCP
+            - containerPort: 465
+              name: smtps
+              protocol: TCP
+            - containerPort: 587
+              name: submission
+              protocol: TCP
+            - containerPort: 143
+              name: imap
+              protocol: TCP
+            - containerPort: 993
+              name: imaps
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - '-c'
+                - nc -z localhost 143
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: '1'
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          securityContext:
+            runAsGroup: 0
+            runAsUser: 0
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/mail
+              name: mail-data
+            - mountPath: /etc/dms
+              name: dms-config
+            - mountPath: /tmp
+              name: tmp
+      dnsPolicy: ClusterFirst
+      initContainers:
+        - command:
+            - sh
+            - '-c'
+            - |
+              mkdir -p /tmp/docker-mailserver /etc/postfix
+              echo 'postmaster@gamifying.dev|{PLAIN}mom2nbfYnLIt6fdWZtWaIw==' > /tmp/docker-mailserver/postfix-accounts.cf
+
+              # Restore postfix virtual mailbox maps from persistent storage if they exist
+              if [ -f /etc/dms/vmailbox ]; then
+                cp /etc/dms/vmailbox /etc/postfix/vmailbox
+                cp /etc/dms/virtual /etc/postfix/virtual 2>/dev/null || echo "" > /etc/postfix/virtual
+                cp /etc/dms/vhost /etc/postfix/vhost 2>/dev/null || echo "gamifying.dev" > /etc/postfix/vhost
+                postmap hash:/etc/postfix/vmailbox
+                postmap hash:/etc/postfix/virtual
+                postmap hash:/etc/postfix/vhost
+                echo "✓ Restored postfix maps"
+              fi
+
+              # Restore transport map (DMS processes postfix-transport-map.cf on startup)
+              if [ -f /etc/dms/transport ]; then
+                cp /etc/dms/transport /tmp/docker-mailserver/postfix-transport-map.cf
+                echo "✓ Restored transport map"
+              fi
+
+              # Restore user-patches.sh (runs after DMS setup to apply transport_maps)
+              if [ -f /etc/dms/user-patches.sh ]; then
+                cp /etc/dms/user-patches.sh /tmp/docker-mailserver/user-patches.sh
+                chmod +x /tmp/docker-mailserver/user-patches.sh
+                echo "✓ Restored user-patches.sh"
+              fi
+          image: mailserver/docker-mailserver:latest
+          imagePullPolicy: Always
+          name: setup-accounts
+          resources: {}
+          securityContext:
+            runAsGroup: 0
+            runAsUser: 0
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /etc/dms
+              name: dms-config
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 101
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: mail-data
+          persistentVolumeClaim:
+            claimName: dms-mail-data
+        - name: dms-config
+          persistentVolumeClaim:
+            claimName: dms-config
+        - emptyDir: {}
+          name: tmp
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate

@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mynforkort
+  name: mynforkort-service
+  namespace: apps
+spec:
+  clusterIP: 10.43.204.149
+  clusterIPs:
+    - 10.43.204.149
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: mynforkort
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: '3'
+    field.cattle.io/publicEndpoints: '[{"addresses":["192.168.0.134"],"port":443,"protocol":"HTTPS","serviceName":"apps:mynforkort-service","ingressName":"apps:mynforkort-ingress","hostname":"xn--myndighetsfrkortningar-4hc.nu","path":"/","allNodes":false}]'
+  labels:
+    app: mynforkort
+  name: mynforkort
+  namespace: apps
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: mynforkort
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: mynforkort
+    spec:
+      containers:
+        - env:
+            - name: APP_ENV
+              value: production
+            - name: APP_DEBUG
+              value: 'false'
+            - name: DB_HOST
+              value: mysql
+            - name: DB_PORT
+              value: '3306'
+            - name: DB_DATABASE
+              value: abbrevlex
+            - name: DB_USERNAME
+              value: root
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: mysql-root-password
+                  name: mysql-secret
+          image: mynforkort:latest
+          imagePullPolicy: Never
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: mynforkort
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/publicEndpoints: '[{"addresses":["192.168.0.134"],"port":443,"protocol":"HTTPS","serviceName":"apps:mynforkort-service","ingressName":"apps:mynforkort-ingress","hostname":"xn--myndighetsfrkortningar-4hc.nu","path":"/","allNodes":false}]'
+  name: mynforkort-ingress
+  namespace: apps
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: xn--myndighetsfrkortningar-4hc.nu
+      http:
+        paths:
+          - backend:
+              service:
+                name: mynforkort-service
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - xn--myndighetsfrkortningar-4hc.nu
+      secretName: mynforkort-tls-cert

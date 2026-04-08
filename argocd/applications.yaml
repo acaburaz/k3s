@@ -1,0 +1,125 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mynforkort
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acaburaz/k3s
+    targetRevision: HEAD
+    path: apps/mynforkort
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mysql
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acaburaz/k3s
+    targetRevision: HEAD
+    path: apps/mysql
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: logiplan
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acaburaz/k3s
+    targetRevision: HEAD
+    path: apps/logiplan
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: registry
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acaburaz/k3s
+    targetRevision: HEAD
+    path: apps/registry
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mailcow
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acaburaz/k3s
+    targetRevision: HEAD
+    path: apps/mailcow
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mailcow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-issuers
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acaburaz/k3s
+    targetRevision: HEAD
+    path: infra/cert-manager
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

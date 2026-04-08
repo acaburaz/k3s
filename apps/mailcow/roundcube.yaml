@@ -1,0 +1,190 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: roundcube
+  name: roundcube-service
+  namespace: mailcow
+spec:
+  clusterIP: 10.43.114.236
+  clusterIPs:
+    - 10.43.114.236
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: roundcube
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: '10'
+    field.cattle.io/publicEndpoints: '[{"addresses":["192.168.0.134"],"port":443,"protocol":"HTTPS","serviceName":"mailcow:roundcube-service","ingressName":"mailcow:mail-ingress","hostname":"mail.gamifying.dev","path":"/","allNodes":false},{"addresses":["192.168.0.134"],"port":443,"protocol":"HTTPS","serviceName":"mailcow:roundcube-service","ingressName":"mailcow:mailcow-ingress","hostname":"webmail.gamifying.dev","path":"/","allNodes":false}]'
+  name: roundcube
+  namespace: mailcow
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: roundcube
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: roundcube
+    spec:
+      containers:
+        - env:
+            - name: ROUNDCUBEMAIL_DEFAULT_HOST
+              value: dms-service.mailcow.svc.cluster.local
+            - name: ROUNDCUBEMAIL_DEFAULT_PORT
+              value: '143'
+            - name: ROUNDCUBEMAIL_IMAP_PORT
+              value: '143'
+            - name: ROUNDCUBEMAIL_IMAP_SECURE
+              value: 'false'
+            - name: ROUNDCUBEMAIL_SMTP_HOST
+              value: dms-service.mailcow.svc.cluster.local
+            - name: ROUNDCUBEMAIL_SMTP_PORT
+              value: '25'
+            - name: ROUNDCUBEMAIL_SMTP_SECURE
+              value: 'false'
+            - name: ROUNDCUBEMAIL_SMTP_USER
+              value: '%u'
+            - name: ROUNDCUBEMAIL_SMTP_PASS
+              value: '%p'
+            - name: ROUNDCUBEMAIL_SKIN
+              value: larry
+            - name: ROUNDCUBEMAIL_PLUGINS
+              value: archive,zipdownload
+            - name: ROUNDCUBEMAIL_DB_DRIVER
+              value: sqlite
+            - name: ROUNDCUBEMAIL_DB_HOST
+              value: sqlite
+          image: roundcube/roundcubemail:latest-apache
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: roundcube
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/roundcube/db
+              name: roundcube-db
+            - mountPath: /var/www/html/config/config.docker.inc.php
+              name: roundcube-config
+              subPath: config.docker.inc.php
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: roundcube-db
+          persistentVolumeClaim:
+            claimName: roundcube-db
+        - configMap:
+            defaultMode: 420
+            name: roundcube-config
+          name: roundcube-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: 'yes'
+    pv.kubernetes.io/bound-by-controller: 'yes'
+    volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+    volume.kubernetes.io/selected-node: m700
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+  name: roundcube-db
+  namespace: mailcow
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+  storageClassName: local-path
+  volumeMode: Filesystem
+  volumeName: pvc-5e058d0f-7b21-4a2b-85b8-6269f03c079a
+---
+apiVersion: v1
+data:
+  config.docker.inc.php: |
+    <?php
+      $config['db_dsnw'] = 'sqlite:////var/roundcube/db/sqlite.db?mode=0646';
+      $config['db_dsnr'] = '';
+      $config['imap_host'] = 'dms-service.mailcow.svc.cluster.local:143';
+      $config['smtp_host'] = 'dms-service.mailcow.svc.cluster.local:587';
+      $config['username_domain'] = '';
+      $config['temp_dir'] = '/tmp/roundcube-temp';
+      $config['skin'] = 'larry';
+      $config['request_path'] = '/';
+      $config['plugins'] = array_filter(array_unique(array_merge($config['plugins'], ['archive', 'zipdownload'])));
+kind: ConfigMap
+metadata:
+  name: roundcube-config
+  namespace: mailcow
+---
+apiVersion: v1
+data:
+  config.docker.inc.php: |
+    <?php
+      $config['db_dsnw'] = 'sqlite:////var/roundcube/db/sqlite.db?mode=0646';
+      $config['db_dsnr'] = '';
+      $config['imap_host'] = 'dms-service.mailcow.svc.cluster.local:143';
+      $config['smtp_host'] = 'dms-service.mailcow.svc.cluster.local:587';
+      $config['username_domain'] = '';
+      $config['temp_dir'] = '/tmp/roundcube-temp';
+      $config['skin'] = 'larry';
+      $config['request_path'] = '/';
+      $config['plugins'] = array_filter(array_unique(array_merge($config['plugins'], ['archive', 'zipdownload'])));
+kind: ConfigMap
+metadata:
+  name: roundcube-config
+  namespace: mailcow

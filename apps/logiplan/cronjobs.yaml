@@ -1,0 +1,95 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup-old-images
+  namespace: apps
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata: {}
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - '-c'
+                - |
+                  echo "🧹 Cleaning up old images (keeping 5 latest)..."
+                  curl -s $REGISTRY_URL/v2/_catalog | jq -r '.repositories[]' | while read repo; do
+                    echo "Repo: $repo"
+                    tags=$(curl -s $REGISTRY_URL/v2/$repo/tags/list | jq -r '.tags | sort_by(.) | reverse | .[5:][]' 2>/dev/null || echo "")
+                    if [ -n "$tags" ]; then
+                      echo "$tags" | while read tag; do
+                        echo "Deleting $repo:$tag"
+                        digest=$(curl -s -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+                          $REGISTRY_URL/v2/$repo/manifests/$tag | sha256sum | awk '{print "sha256:" $1}')
+                        curl -X DELETE $REGISTRY_URL/v2/$repo/manifests/$digest 2>/dev/null || true
+                      done
+                    fi
+                  done
+                  echo "✅ Cleanup complete!"
+              env:
+                - name: REGISTRY_URL
+                  value: http://docker-registry:5000
+              image: registry:2
+              imagePullPolicy: IfNotPresent
+              name: cleanup
+              resources: {}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: build-system
+          serviceAccountName: build-system
+          terminationGracePeriodSeconds: 30
+  schedule: 0 2 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sonarqube-health-check
+  namespace: apps
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata: {}
+    spec:
+      template:
+        metadata: {}
+        spec:
+          containers:
+            - command:
+                - /bin/sh
+                - '-c'
+                - |
+                  echo "Checking SonarQube health..."
+                  curl -k https://sonarqube.logiplan.se/api/system/health -o /dev/null -s -w "HTTP Status: %{http_code}\n"
+                  echo "---"
+                  echo "Repositories configured:"
+                  echo "  1. LogiPlanWebApp (C#/ASP.NET)"
+                  echo "  2. LogiPlanWebTerminal (Node.js)"
+                  echo "  3. LogiPlanWebUI (Node.js/React)"
+              image: curlimages/curl:latest
+              imagePullPolicy: Always
+              name: health-check
+              resources: {}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: OnFailure
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: default
+          serviceAccountName: default
+          terminationGracePeriodSeconds: 30
+  schedule: '*/10 * * * *'
+  successfulJobsHistoryLimit: 3
+  suspend: false
