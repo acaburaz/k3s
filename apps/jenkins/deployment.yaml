@@ -33,7 +33,8 @@ spec:
             - -c
             - |
               if [ ! -f /var/jenkins_home/.plugins-installed ]; then
-                jenkins-plugin-cli --plugin-file /usr/share/jenkins/plugins.txt
+                mkdir -p /var/jenkins_home/plugins
+                jenkins-plugin-cli --plugin-file /usr/share/jenkins/plugins.txt -d /var/jenkins_home/plugins
                 touch /var/jenkins_home/.plugins-installed
                 echo "Plugins installed"
               else
