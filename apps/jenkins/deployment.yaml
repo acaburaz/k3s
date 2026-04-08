@@ -91,6 +91,21 @@ spec:
                 secretKeyRef:
                   name: jenkins-credentials
                   key: ARGOCD_PASS
+            - name: MYNFORKORT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: MYNFORKORT_TOKEN
+            - name: LOGIPLAN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: LOGIPLAN_USER
+            - name: LOGIPLAN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: LOGIPLAN_TOKEN
           resources:
             requests:
               cpu: 250m
