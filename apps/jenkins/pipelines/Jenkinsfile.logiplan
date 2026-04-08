@@ -1,0 +1,78 @@
+// Pipeline for logiplan — triggered on push to app repo
+
+pipeline {
+  agent any
+
+  environment {
+    IMAGE    = "ghcr.io/acaburaz/logiplan"
+    APP_NAME = "logiplan"
+    ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local:80"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build & Push Image') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'ghcr-credentials',
+          usernameVariable: 'GHCR_USER',
+          passwordVariable: 'GHCR_TOKEN'
+        )]) {
+          sh '''
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:latest .
+            docker push ${IMAGE}:${BUILD_NUMBER}
+            docker push ${IMAGE}:latest
+          '''
+        }
+      }
+    }
+
+    stage('Update Image Tag in GitOps Repo') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'github-credentials',
+          usernameVariable: 'GH_USER',
+          passwordVariable: 'GH_TOKEN'
+        )]) {
+          sh '''
+            git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-${BUILD_NUMBER}
+            cd /tmp/gitops-${BUILD_NUMBER}
+            sed -i "s|image: ghcr.io/acaburaz/logiplan:.*|image: ghcr.io/acaburaz/logiplan:${BUILD_NUMBER}|" apps/logiplan/deployment.yaml
+            git config user.email "jenkins@ci"
+            git config user.name "Jenkins"
+            git add apps/logiplan/deployment.yaml
+            git commit -m "ci: update logiplan image to build ${BUILD_NUMBER}"
+            git push
+            rm -rf /tmp/gitops-${BUILD_NUMBER}
+          '''
+        }
+      }
+    }
+
+    stage('Sync ArgoCD') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'argocd-credentials',
+          usernameVariable: 'ARGOCD_USER',
+          passwordVariable: 'ARGOCD_PASS'
+        )]) {
+          sh '''
+            argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USER} --password ${ARGOCD_PASS} --insecure
+            argocd app sync ${APP_NAME} --insecure
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    failure { echo "Build failed for ${APP_NAME} build #${BUILD_NUMBER}" }
+    success { echo "Successfully deployed ${APP_NAME}:${BUILD_NUMBER}" }
+  }
+}

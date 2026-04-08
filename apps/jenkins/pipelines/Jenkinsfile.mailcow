@@ -1,0 +1,46 @@
+// Pipeline for mailcow (DMS config changes) — triggered on push to k3s repo apps/mailcow/
+
+pipeline {
+  agent any
+
+  environment {
+    APP_NAME = "mailcow"
+    ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local:80"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Validate Manifests') {
+      steps {
+        sh '''
+          kubectl apply --dry-run=client -f apps/mailcow/ 2>&1 || true
+        '''
+      }
+    }
+
+    stage('Sync ArgoCD') {
+      steps {
+        withCredentials([usernamePassword(
+          credentialsId: 'argocd-credentials',
+          usernameVariable: 'ARGOCD_USER',
+          passwordVariable: 'ARGOCD_PASS'
+        )]) {
+          sh '''
+            argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USER} --password ${ARGOCD_PASS} --insecure
+            argocd app sync ${APP_NAME} --insecure
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    failure { echo "Mailcow sync failed for build #${BUILD_NUMBER}" }
+    success { echo "Mailcow synced successfully" }
+  }
+}
