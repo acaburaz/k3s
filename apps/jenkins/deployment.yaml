@@ -26,6 +26,25 @@ spec:
           volumeMounts:
             - name: jenkins-data
               mountPath: /var/jenkins_home
+        - name: install-plugins
+          image: jenkins/jenkins:lts
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /var/jenkins_home/.plugins-installed ]; then
+                jenkins-plugin-cli --plugin-file /usr/share/jenkins/plugins.txt
+                touch /var/jenkins_home/.plugins-installed
+                echo "Plugins installed"
+              else
+                echo "Plugins already installed, skipping"
+              fi
+          volumeMounts:
+            - name: jenkins-data
+              mountPath: /var/jenkins_home
+            - name: plugins-config
+              mountPath: /usr/share/jenkins/plugins.txt
+              subPath: plugins.txt
       containers:
         - name: jenkins
           image: jenkins/jenkins:lts
@@ -40,6 +59,37 @@ spec:
               value: "-Djenkins.install.runSetupWizard=false"
             - name: CASC_JENKINS_CONFIG
               value: /var/jenkins_home/casc.yaml
+            # Credential values injected from secret
+            - name: GHCR_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: GHCR_USER
+            - name: GHCR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: GHCR_TOKEN
+            - name: GITHUB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: GITHUB_USER
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: GITHUB_TOKEN
+            - name: ARGOCD_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: ARGOCD_USER
+            - name: ARGOCD_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: ARGOCD_PASS
           resources:
             requests:
               cpu: 250m
@@ -50,6 +100,9 @@ spec:
           volumeMounts:
             - name: jenkins-data
               mountPath: /var/jenkins_home
+            - name: casc-config
+              mountPath: /var/jenkins_home/casc.yaml
+              subPath: casc.yaml
             - name: docker-sock
               mountPath: /var/run/docker.sock
           readinessProbe:
@@ -62,13 +115,19 @@ spec:
             httpGet:
               path: /login
               port: 8080
-            initialDelaySeconds: 90
+            initialDelaySeconds: 120
             periodSeconds: 30
             failureThreshold: 5
       volumes:
         - name: jenkins-data
           persistentVolumeClaim:
             claimName: jenkins-data
+        - name: casc-config
+          configMap:
+            name: jenkins-casc
+        - name: plugins-config
+          configMap:
+            name: jenkins-plugins
         - name: docker-sock
           hostPath:
             path: /var/run/docker.sock
