@@ -54,14 +54,14 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: logiplan
+  name: logiplan-api
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/acaburaz/k3s
     targetRevision: HEAD
-    path: apps/logiplan
+    path: apps/logiplan-api
   destination:
     server: https://kubernetes.default.svc
     namespace: apps

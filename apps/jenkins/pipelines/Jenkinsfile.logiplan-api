@@ -1,14 +1,13 @@
-// Place this file as 'Jenkinsfile' in the root of acaburaz/mynforkort repo
+// Place this file as 'Jenkinsfile' in the root of LogiPlanWebApp repo
 // Jenkins polls every 2 min, builds on new commits
 
 pipeline {
   agent any
 
   environment {
-    IMAGE        = "ghcr.io/acaburaz/mynforkort"
-    APP_NAME     = "mynforkort"
+    IMAGE         = "ghcr.io/acaburaz/logiplan-api"
+    APP_NAME      = "logiplan-api"
     ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local:80"
-    GITOPS_REPO  = "https://github.com/acaburaz/k3s"
   }
 
   stages {
@@ -39,11 +38,11 @@ pipeline {
           sh '''
             git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-${BUILD_NUMBER}
             cd /tmp/gitops-${BUILD_NUMBER}
-            sed -i "s|image: ghcr.io/acaburaz/mynforkort:.*|image: ghcr.io/acaburaz/mynforkort:${BUILD_NUMBER}|" apps/mynforkort/deployment.yaml
+            sed -i "s|image: ghcr.io/acaburaz/logiplan-api:.*|image: ghcr.io/acaburaz/logiplan-api:${BUILD_NUMBER}|" apps/logiplan-api/deployment.yaml
             git config user.email "jenkins@ci"
             git config user.name "Jenkins"
-            git add apps/mynforkort/deployment.yaml
-            git commit -m "ci: update mynforkort image to build ${BUILD_NUMBER}" || echo "No changes"
+            git add apps/logiplan-api/deployment.yaml
+            git commit -m "ci: update logiplan-api image to build ${BUILD_NUMBER}" || echo "No changes"
             git push || true
             rm -rf /tmp/gitops-${BUILD_NUMBER}
           '''

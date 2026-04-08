@@ -36,10 +36,68 @@ data:
                   password: "${GITHUB_TOKEN}"
               - usernamePassword:
                   scope: GLOBAL
+                  id: "mynforkort-scm"
+                  description: "GitHub — mynforkort source repo"
+                  username: "${GITHUB_USER}"
+                  password: "${MYNFORKORT_TOKEN}"
+              - usernamePassword:
+                  scope: GLOBAL
+                  id: "logiplan-scm"
+                  description: "Azure DevOps — LogiPlanWebApp source repo"
+                  username: "${LOGIPLAN_USER}"
+                  password: "${LOGIPLAN_TOKEN}"
+              - usernamePassword:
+                  scope: GLOBAL
                   id: "argocd-credentials"
                   description: "ArgoCD admin"
                   username: "${ARGOCD_USER}"
                   password: "${ARGOCD_PASS}"
+
+    jobs:
+      - script: |
+          pipelineJob('mynforkort-build') {
+            description('Build and deploy mynforkort on new commits')
+            triggers {
+              scm('H/2 * * * *')
+            }
+            definition {
+              cpsScm {
+                scm {
+                  git {
+                    remote {
+                      url('https://github.com/acaburaz/mynforkort')
+                      credentials('mynforkort-scm')
+                    }
+                    branch('*/master')
+                  }
+                }
+                scriptPath('Jenkinsfile')
+                lightweight(true)
+              }
+            }
+          }
+      - script: |
+          pipelineJob('logiplan-api-build') {
+            description('Build and deploy logiplan-api on new commits')
+            triggers {
+              scm('H/2 * * * *')
+            }
+            definition {
+              cpsScm {
+                scm {
+                  git {
+                    remote {
+                      url('https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp')
+                      credentials('logiplan-scm')
+                    }
+                    branch('*/master')
+                  }
+                }
+                scriptPath('Jenkinsfile')
+                lightweight(true)
+              }
+            }
+          }
 
     unclassified:
       location:
