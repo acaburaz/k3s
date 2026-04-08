@@ -20,7 +20,21 @@ spec:
       initContainers:
         - name: init-jenkins-home
           image: busybox
-          command: ["sh", "-c", "chown -R 1000:1000 /var/jenkins_home"]
+          command:
+            - sh
+            - -c
+            - |
+              chown -R 1000:1000 /var/jenkins_home
+              mkdir -p /var/jenkins_home/bin
+              if [ ! -f /var/jenkins_home/bin/docker ]; then
+                wget -qO /var/jenkins_home/bin/docker https://download.docker.com/linux/static/stable/x86_64/docker-27.3.1.tgz.sha256 2>/dev/null || true
+                wget -qO /tmp/docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-27.3.1.tgz
+                tar -xz -C /tmp -f /tmp/docker.tgz docker/docker
+                mv /tmp/docker/docker /var/jenkins_home/bin/docker
+                chmod +x /var/jenkins_home/bin/docker
+                echo "Docker CLI installed"
+              fi
+              chown -R 1000:1000 /var/jenkins_home/bin
           securityContext:
             runAsUser: 0
           volumeMounts:
@@ -60,6 +74,8 @@ spec:
               value: "-Djenkins.install.runSetupWizard=false"
             - name: CASC_JENKINS_CONFIG
               value: /var/jenkins_home/casc.yaml
+            - name: PATH
+              value: "/var/jenkins_home/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             # Credential values injected from secret
             - name: GHCR_USER
               valueFrom:
