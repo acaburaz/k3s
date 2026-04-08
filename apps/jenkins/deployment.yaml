@@ -74,8 +74,6 @@ spec:
               value: "-Djenkins.install.runSetupWizard=false"
             - name: CASC_JENKINS_CONFIG
               value: /var/jenkins_home/casc.yaml
-            - name: PATH
-              value: "/var/jenkins_home/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             # Credential values injected from secret
             - name: GHCR_USER
               valueFrom:
