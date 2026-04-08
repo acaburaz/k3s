@@ -5,14 +5,13 @@ metadata:
   namespace: jenkins
 data:
   plugins.txt: |
-    configuration-as-code:latest
-    credentials:latest
-    credentials-binding:latest
-    git:latest
-    github:latest
-    workflow-aggregator:latest
-    pipeline-stage-view:latest
-    docker-workflow:latest
-    blueocean:latest
-    kubernetes:latest
-    job-dsl:latest
+    configuration-as-code
+    credentials
+    credentials-binding
+    git
+    github
+    workflow-aggregator
+    pipeline-stage-view
+    docker-workflow
+    kubernetes
+    job-dsl
