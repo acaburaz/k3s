@@ -59,8 +59,14 @@ pipeline {
           passwordVariable: 'ARGOCD_PASS'
         )]) {
           sh '''
-            argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USER} --password ${ARGOCD_PASS} --insecure
-            argocd app sync ${APP_NAME} --insecure
+            ARGOCD_TOKEN=$(curl -sf -X POST http://${ARGOCD_SERVER}/api/v1/session \
+              -H "Content-Type: application/json" \
+              -d "{\\"username\\":\\"${ARGOCD_USER}\\",\\"password\\":\\"${ARGOCD_PASS}\\"}" | \
+              grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+            curl -sf -X POST http://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync \
+              -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{}" | grep -o '"phase":"[^"]*"'
           '''
         }
       }
