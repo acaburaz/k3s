@@ -17,6 +17,7 @@ spec:
       securityContext:
         fsGroup: 1000
         runAsUser: 1000
+        supplementalGroups: [996]
       initContainers:
         - name: init-jenkins-home
           image: busybox
