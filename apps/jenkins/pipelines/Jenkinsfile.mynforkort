@@ -7,7 +7,7 @@ pipeline {
   environment {
     IMAGE        = "ghcr.io/acaburaz/mynforkort"
     APP_NAME     = "mynforkort"
-    ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local:80"
+    ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local"
     GITOPS_REPO  = "https://github.com/acaburaz/k3s"
   }
 
@@ -59,14 +59,14 @@ pipeline {
           passwordVariable: 'ARGOCD_PASS'
         )]) {
           sh '''
-            ARGOCD_TOKEN=$(curl -sf -X POST http://${ARGOCD_SERVER}/api/v1/session \
+            ARGOCD_TOKEN=$(curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/session \
               -H "Content-Type: application/json" \
               -d "{\\"username\\":\\"${ARGOCD_USER}\\",\\"password\\":\\"${ARGOCD_PASS}\\"}" | \
               grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-            curl -sf -X POST http://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync \
+            curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync \
               -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
               -H "Content-Type: application/json" \
-              -d "{}" | grep -o '"phase":"[^"]*"'
+              -d "{}"
           '''
         }
       }
