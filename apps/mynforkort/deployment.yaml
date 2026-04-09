@@ -49,6 +49,8 @@ spec:
       labels:
         app: mynforkort
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - env:
             - name: APP_ENV
@@ -68,8 +70,8 @@ spec:
                 secretKeyRef:
                   key: mysql-root-password
                   name: mysql-secret
-          image: mynforkort:latest
-          imagePullPolicy: Never
+          image: ghcr.io/acaburaz/mynforkort:latest
+          imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
             httpGet:
