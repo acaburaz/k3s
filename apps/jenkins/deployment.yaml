@@ -28,12 +28,16 @@ spec:
               chown -R 1000:1000 /var/jenkins_home
               mkdir -p /var/jenkins_home/bin
               if [ ! -f /var/jenkins_home/bin/docker ]; then
-                wget -qO /var/jenkins_home/bin/docker https://download.docker.com/linux/static/stable/x86_64/docker-27.3.1.tgz.sha256 2>/dev/null || true
                 wget -qO /tmp/docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-27.3.1.tgz
                 tar -xz -C /tmp -f /tmp/docker.tgz docker/docker
                 mv /tmp/docker/docker /var/jenkins_home/bin/docker
                 chmod +x /var/jenkins_home/bin/docker
                 echo "Docker CLI installed"
+              fi
+              if [ ! -f /var/jenkins_home/bin/argocd ]; then
+                wget -qO /var/jenkins_home/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.13.3/argocd-linux-amd64
+                chmod +x /var/jenkins_home/bin/argocd
+                echo "ArgoCD CLI installed"
               fi
               chown -R 1000:1000 /var/jenkins_home/bin
           securityContext:
@@ -134,6 +138,9 @@ spec:
             - name: jenkins-data
               mountPath: /usr/local/bin/docker
               subPath: bin/docker
+            - name: jenkins-data
+              mountPath: /usr/local/bin/argocd
+              subPath: bin/argocd
             - name: casc-config
               mountPath: /var/jenkins_home/casc.yaml
               subPath: casc.yaml
