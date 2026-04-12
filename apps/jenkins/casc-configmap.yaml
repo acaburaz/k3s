@@ -83,18 +83,101 @@ data:
               scm('H/2 * * * *')
             }
             definition {
-              cpsScm {
-                scm {
-                  git {
-                    remote {
-                      url('https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp')
-                      credentials('logiplan-scm')
+              cps {
+                script('''
+                  pipeline {
+                    agent any
+                    environment {
+                      IMAGE         = "ghcr.io/acaburaz/logiplan-webapi"
+                      APP_NAME      = "logiplan-api"
+                      DEPLOY_FILE   = "apps/logiplan-api/deployment.yaml"
+                      ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local"
+                      GITOPS_REPO   = "https://github.com/acaburaz/k3s"
                     }
-                    branch('*/master')
+                    stages {
+                      stage("Checkout") {
+                        steps {
+                          withCredentials([usernamePassword(
+                            credentialsId: "logiplan-scm",
+                            usernameVariable: "AZ_USER",
+                            passwordVariable: "AZ_TOKEN"
+                          )]) {
+                            checkout([
+                              $class: "GitSCM",
+                              branches: [[name: "*/master"]],
+                              userRemoteConfigs: [[
+                                url: "https://${AZ_USER}:${AZ_TOKEN}@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp",
+                                credentialsId: "logiplan-scm"
+                              ]]
+                            ])
+                          }
+                        }
+                      }
+                      stage("Build & Push Image") {
+                        steps {
+                          withCredentials([usernamePassword(
+                            credentialsId: "ghcr-credentials",
+                            usernameVariable: "GHCR_USER",
+                            passwordVariable: "GHCR_TOKEN"
+                          )]) {
+                            sh """
+                              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+                              docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:latest .
+                              docker push ${IMAGE}:${BUILD_NUMBER}
+                              docker push ${IMAGE}:latest
+                            """
+                          }
+                        }
+                      }
+                      stage("Update Image Tag in GitOps Repo") {
+                        steps {
+                          withCredentials([usernamePassword(
+                            credentialsId: "github-credentials",
+                            usernameVariable: "GH_USER",
+                            passwordVariable: "GH_TOKEN"
+                          )]) {
+                            sh """
+                              git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-logiplan-${BUILD_NUMBER}
+                              cd /tmp/gitops-logiplan-${BUILD_NUMBER}
+                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webapi:.*|image: ghcr.io/acaburaz/logiplan-webapi:${BUILD_NUMBER}|" ${DEPLOY_FILE}
+                              git config user.email "jenkins@ci"
+                              git config user.name "Jenkins"
+                              git add ${DEPLOY_FILE}
+                              git commit -m "ci: update logiplan-webapi image to build ${BUILD_NUMBER}" || echo "No changes"
+                              git push || true
+                              rm -rf /tmp/gitops-logiplan-${BUILD_NUMBER}
+                            """
+                          }
+                        }
+                      }
+                      stage("Sync ArgoCD") {
+                        steps {
+                          withCredentials([usernamePassword(
+                            credentialsId: "argocd-credentials",
+                            usernameVariable: "ARGOCD_USER",
+                            passwordVariable: "ARGOCD_PASS"
+                          )]) {
+                            sh """
+                              ARGOCD_TOKEN=\\$(curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/session \\
+                                -H "Content-Type: application/json" \\
+                                -d "{\\"username\\":\\"${ARGOCD_USER}\\",\\"password\\":\\"${ARGOCD_PASS}\\"}" | \\
+                                grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+                              curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync \\
+                                -H "Authorization: Bearer \\${ARGOCD_TOKEN}" \\
+                                -H "Content-Type: application/json" \\
+                                -d "{}"
+                            """
+                          }
+                        }
+                      }
+                    }
+                    post {
+                      failure { echo "Build failed for logiplan-api #${BUILD_NUMBER}" }
+                      success { echo "Deployed logiplan-webapi:${BUILD_NUMBER}" }
+                    }
                   }
-                }
-                scriptPath('Jenkinsfile')
-                lightweight(true)
+                ''')
+                sandbox(true)
               }
             }
           }
