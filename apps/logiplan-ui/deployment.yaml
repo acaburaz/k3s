@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: logiplan-webui
+  namespace: apps
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: logiplan-webui
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logiplan-webui
+  namespace: apps
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logiplan-webui
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: logiplan-webui
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: webui
+          image: ghcr.io/acaburaz/logiplan-webui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            httpGet:
+              path: /
+              port: 80
+            timeoutSeconds: 1
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            httpGet:
+              path: /
+              port: 80
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webui-ingress
+  namespace: apps
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: testui-preview.logiplan.se
+      http:
+        paths:
+          - backend:
+              service:
+                name: logiplan-webui
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - testui-preview.logiplan.se
+      secretName: testui-preview-tls
