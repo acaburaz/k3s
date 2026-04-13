@@ -52,7 +52,7 @@ spec:
           envFrom:
             - secretRef:
                 name: logiplan-webapi-secrets
-          image: ghcr.io/acaburaz/logiplan-webapi:65
+          image: ghcr.io/acaburaz/logiplan-webapi:66
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
