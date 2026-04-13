@@ -5,7 +5,7 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout([$class: 'GitSCM', branches: [[name: '*/master']],
-          userRemoteConfigs: [[url: 'https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp',
+          userRemoteConfigs: [[url: 'https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebTerminal',
           credentialsId: 'logiplan-scm']]])
       }
     }
@@ -15,10 +15,10 @@ pipeline {
             usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
           sh '''
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            docker build -t ghcr.io/acaburaz/logiplan-webapi:$BUILD_NUMBER \
-                         -t ghcr.io/acaburaz/logiplan-webapi:latest .
-            docker push ghcr.io/acaburaz/logiplan-webapi:$BUILD_NUMBER
-            docker push ghcr.io/acaburaz/logiplan-webapi:latest
+            docker build -t ghcr.io/acaburaz/logiplan-webterminal:$BUILD_NUMBER \
+                         -t ghcr.io/acaburaz/logiplan-webterminal:latest .
+            docker push ghcr.io/acaburaz/logiplan-webterminal:$BUILD_NUMBER
+            docker push ghcr.io/acaburaz/logiplan-webterminal:latest
           '''
         }
       }
@@ -28,14 +28,14 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'github-credentials',
             usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
           sh '''
-            git clone https://$GH_USER:$GH_TOKEN@github.com/acaburaz/k3s.git /tmp/gitops-api-$BUILD_NUMBER
-            cd /tmp/gitops-api-$BUILD_NUMBER
-            sed -i "s|image: ghcr.io/acaburaz/logiplan-webapi:.*|image: ghcr.io/acaburaz/logiplan-webapi:$BUILD_NUMBER|" apps/logiplan-api/deployment.yaml
+            git clone https://$GH_USER:$GH_TOKEN@github.com/acaburaz/k3s.git /tmp/gitops-terminal-$BUILD_NUMBER
+            cd /tmp/gitops-terminal-$BUILD_NUMBER
+            sed -i "s|image: ghcr.io/acaburaz/logiplan-webterminal:.*|image: ghcr.io/acaburaz/logiplan-webterminal:$BUILD_NUMBER|" apps/logiplan-terminal/deployment.yaml
             git config user.email "jenkins@ci" && git config user.name "Jenkins"
-            git add apps/logiplan-api/deployment.yaml
-            git commit -m "ci: update logiplan-webapi to build $BUILD_NUMBER" || echo "No changes"
+            git add apps/logiplan-terminal/deployment.yaml
+            git commit -m "ci: update logiplan-webterminal to build $BUILD_NUMBER" || echo "No changes"
             git push || true
-            rm -rf /tmp/gitops-api-$BUILD_NUMBER
+            rm -rf /tmp/gitops-terminal-$BUILD_NUMBER
           '''
         }
       }
@@ -49,7 +49,7 @@ pipeline {
               -H "Content-Type: application/json" \
               -d "{\"username\":\"$ARGOCD_USER\",\"password\":\"$ARGOCD_PASS\"}" | \
               grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-            curl -sfk -X POST https://argocd-server.argocd.svc.cluster.local/api/v1/applications/logiplan-api/sync \
+            curl -sfk -X POST https://argocd-server.argocd.svc.cluster.local/api/v1/applications/logiplan-terminal/sync \
               -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{}"
           '''
         }
@@ -57,7 +57,7 @@ pipeline {
     }
   }
   post {
-    failure { echo "Build failed for logiplan-api #${BUILD_NUMBER}" }
-    success { echo "Deployed logiplan-webapi:${BUILD_NUMBER}" }
+    failure { echo "Build failed for logiplan-terminal #${BUILD_NUMBER}" }
+    success { echo "Deployed logiplan-webterminal:${BUILD_NUMBER}" }
   }
 }
