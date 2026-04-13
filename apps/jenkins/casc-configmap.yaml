@@ -97,20 +97,7 @@ data:
                     stages {
                       stage("Checkout") {
                         steps {
-                          withCredentials([usernamePassword(
-                            credentialsId: "logiplan-scm",
-                            usernameVariable: "AZ_USER",
-                            passwordVariable: "AZ_TOKEN"
-                          )]) {
-                            checkout([
-                              $class: "GitSCM",
-                              branches: [[name: "*/master"]],
-                              userRemoteConfigs: [[
-                                url: "https://${AZ_USER}:${AZ_TOKEN}@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp",
-                                credentialsId: "logiplan-scm"
-                              ]]
-                            ])
-                          }
+                          checkout([$class: "GitSCM", branches: [[name: "*/master"]], userRemoteConfigs: [[url: "https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp", credentialsId: "logiplan-scm"]]])
                         }
                       }
                       stage("Build & Push Image") {
@@ -202,9 +189,7 @@ data:
                     stages {
                       stage("Checkout") {
                         steps {
-                          withCredentials([usernamePassword(credentialsId: "logiplan-scm", usernameVariable: "AZ_USER", passwordVariable: "AZ_TOKEN")]) {
-                            checkout([$class: "GitSCM", branches: [[name: "*/master"]], userRemoteConfigs: [[url: "https://${AZ_USER}:${AZ_TOKEN}@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebTerminal", credentialsId: "logiplan-scm"]]])
-                          }
+                          checkout([$class: "GitSCM", branches: [[name: "*/master"]], userRemoteConfigs: [[url: "https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebTerminal", credentialsId: "logiplan-scm"]]])
                         }
                       }
                       stage("Build & Push Image") {
@@ -276,9 +261,7 @@ data:
                     stages {
                       stage("Checkout") {
                         steps {
-                          withCredentials([usernamePassword(credentialsId: "logiplan-scm", usernameVariable: "AZ_USER", passwordVariable: "AZ_TOKEN")]) {
-                            checkout([$class: "GitSCM", branches: [[name: "*/master"]], userRemoteConfigs: [[url: "https://${AZ_USER}:${AZ_TOKEN}@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebUI", credentialsId: "logiplan-scm"]]])
-                          }
+                          checkout([$class: "GitSCM", branches: [[name: "*/master"]], userRemoteConfigs: [[url: "https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebUI", credentialsId: "logiplan-scm"]]])
                         }
                       }
                       stage("Build & Push Image") {
