@@ -92,7 +92,6 @@ data:
                       APP_NAME      = "logiplan-api"
                       DEPLOY_FILE   = "apps/logiplan-api/deployment.yaml"
                       ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local"
-                      GITOPS_REPO   = "https://github.com/acaburaz/k3s"
                     }
                     stages {
                       stage("Checkout") {
@@ -102,55 +101,42 @@ data:
                       }
                       stage("Build & Push Image") {
                         steps {
-                          withCredentials([usernamePassword(
-                            credentialsId: "ghcr-credentials",
-                            usernameVariable: "GHCR_USER",
-                            passwordVariable: "GHCR_TOKEN"
-                          )]) {
+                          withCredentials([usernamePassword(credentialsId: "ghcr-credentials", usernameVariable: "GHCR_USER", passwordVariable: "GHCR_TOKEN")]) {
                             sh """
-                              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-                              docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:latest .
-                              docker push ${IMAGE}:${BUILD_NUMBER}
-                              docker push ${IMAGE}:latest
+                              echo "\${GHCR_TOKEN}" | docker login ghcr.io -u "\${GHCR_USER}" --password-stdin
+                              docker build -t \${IMAGE}:\${BUILD_NUMBER} -t \${IMAGE}:latest .
+                              docker push \${IMAGE}:\${BUILD_NUMBER}
+                              docker push \${IMAGE}:latest
                             """
                           }
                         }
                       }
-                      stage("Update Image Tag in GitOps Repo") {
+                      stage("Update Image Tag") {
                         steps {
-                          withCredentials([usernamePassword(
-                            credentialsId: "github-credentials",
-                            usernameVariable: "GH_USER",
-                            passwordVariable: "GH_TOKEN"
-                          )]) {
+                          withCredentials([usernamePassword(credentialsId: "github-credentials", usernameVariable: "GH_USER", passwordVariable: "GH_TOKEN")]) {
                             sh """
-                              git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-logiplan-${BUILD_NUMBER}
-                              cd /tmp/gitops-logiplan-${BUILD_NUMBER}
-                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webapi:.*|image: ghcr.io/acaburaz/logiplan-webapi:${BUILD_NUMBER}|" ${DEPLOY_FILE}
-                              git config user.email "jenkins@ci"
-                              git config user.name "Jenkins"
-                              git add ${DEPLOY_FILE}
-                              git commit -m "ci: update logiplan-webapi image to build ${BUILD_NUMBER}" || echo "No changes"
+                              git clone https://\${GH_USER}:\${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-logiplan-\${BUILD_NUMBER}
+                              cd /tmp/gitops-logiplan-\${BUILD_NUMBER}
+                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webapi:.*|image: ghcr.io/acaburaz/logiplan-webapi:\${BUILD_NUMBER}|" \${DEPLOY_FILE}
+                              git config user.email "jenkins@ci" && git config user.name "Jenkins"
+                              git add \${DEPLOY_FILE}
+                              git commit -m "ci: update logiplan-webapi to build \${BUILD_NUMBER}" || echo "No changes"
                               git push || true
-                              rm -rf /tmp/gitops-logiplan-${BUILD_NUMBER}
+                              rm -rf /tmp/gitops-logiplan-\${BUILD_NUMBER}
                             """
                           }
                         }
                       }
                       stage("Sync ArgoCD") {
                         steps {
-                          withCredentials([usernamePassword(
-                            credentialsId: "argocd-credentials",
-                            usernameVariable: "ARGOCD_USER",
-                            passwordVariable: "ARGOCD_PASS"
-                          )]) {
+                          withCredentials([usernamePassword(credentialsId: "argocd-credentials", usernameVariable: "ARGOCD_USER", passwordVariable: "ARGOCD_PASS")]) {
                             sh """
-                              ARGOCD_TOKEN=\\$(curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/session \\
+                              ARGOCD_TOKEN=\$(curl -sfk -X POST https://\${ARGOCD_SERVER}/api/v1/session \\
                                 -H "Content-Type: application/json" \\
-                                -d "{\\"username\\":\\"${ARGOCD_USER}\\",\\"password\\":\\"${ARGOCD_PASS}\\"}" | \\
+                                -d "{\\"username\\":\\"\${ARGOCD_USER}\\",\\"password\\":\\"\${ARGOCD_PASS}\\"}" | \\
                                 grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-                              curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync \\
-                                -H "Authorization: Bearer \\${ARGOCD_TOKEN}" \\
+                              curl -sfk -X POST https://\${ARGOCD_SERVER}/api/v1/applications/\${APP_NAME}/sync \\
+                                -H "Authorization: Bearer \${ARGOCD_TOKEN}" \\
                                 -H "Content-Type: application/json" \\
                                 -d "{}"
                             """
@@ -159,8 +145,8 @@ data:
                       }
                     }
                     post {
-                      failure { echo "Build failed for logiplan-api #${BUILD_NUMBER}" }
-                      success { echo "Deployed logiplan-webapi:${BUILD_NUMBER}" }
+                      failure { echo "Build failed for logiplan-api" }
+                      success { echo "Deployed logiplan-webapi" }
                     }
                   }
                 ''')
@@ -168,7 +154,6 @@ data:
               }
             }
           }
-
       - script: |
           pipelineJob('logiplan-terminal-build') {
             description('Build and deploy LogiPlanWebTerminal on new commits')
@@ -196,10 +181,10 @@ data:
                         steps {
                           withCredentials([usernamePassword(credentialsId: "ghcr-credentials", usernameVariable: "GHCR_USER", passwordVariable: "GHCR_TOKEN")]) {
                             sh """
-                              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-                              docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:latest .
-                              docker push ${IMAGE}:${BUILD_NUMBER}
-                              docker push ${IMAGE}:latest
+                              echo "\${GHCR_TOKEN}" | docker login ghcr.io -u "\${GHCR_USER}" --password-stdin
+                              docker build -t \${IMAGE}:\${BUILD_NUMBER} -t \${IMAGE}:latest .
+                              docker push \${IMAGE}:\${BUILD_NUMBER}
+                              docker push \${IMAGE}:latest
                             """
                           }
                         }
@@ -208,14 +193,14 @@ data:
                         steps {
                           withCredentials([usernamePassword(credentialsId: "github-credentials", usernameVariable: "GH_USER", passwordVariable: "GH_TOKEN")]) {
                             sh """
-                              git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-terminal-${BUILD_NUMBER}
-                              cd /tmp/gitops-terminal-${BUILD_NUMBER}
-                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webterminal:.*|image: ghcr.io/acaburaz/logiplan-webterminal:${BUILD_NUMBER}|" ${DEPLOY_FILE}
+                              git clone https://\${GH_USER}:\${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-terminal-\${BUILD_NUMBER}
+                              cd /tmp/gitops-terminal-\${BUILD_NUMBER}
+                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webterminal:.*|image: ghcr.io/acaburaz/logiplan-webterminal:\${BUILD_NUMBER}|" \${DEPLOY_FILE}
                               git config user.email "jenkins@ci" && git config user.name "Jenkins"
-                              git add ${DEPLOY_FILE}
-                              git commit -m "ci: update logiplan-webterminal to build ${BUILD_NUMBER}" || echo "No changes"
+                              git add \${DEPLOY_FILE}
+                              git commit -m "ci: update logiplan-webterminal to build \${BUILD_NUMBER}" || echo "No changes"
                               git push || true
-                              rm -rf /tmp/gitops-terminal-${BUILD_NUMBER}
+                              rm -rf /tmp/gitops-terminal-\${BUILD_NUMBER}
                             """
                           }
                         }
@@ -224,16 +209,22 @@ data:
                         steps {
                           withCredentials([usernamePassword(credentialsId: "argocd-credentials", usernameVariable: "ARGOCD_USER", passwordVariable: "ARGOCD_PASS")]) {
                             sh """
-                              ARGOCD_TOKEN=\\$(curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/session -H "Content-Type: application/json" -d "{\\"username\\":\\"${ARGOCD_USER}\\",\\"password\\":\\"${ARGOCD_PASS}\\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-                              curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync -H "Authorization: Bearer \\${ARGOCD_TOKEN}" -H "Content-Type: application/json" -d "{}"
+                              ARGOCD_TOKEN=\$(curl -sfk -X POST https://\${ARGOCD_SERVER}/api/v1/session \\
+                                -H "Content-Type: application/json" \\
+                                -d "{\\"username\\":\\"\${ARGOCD_USER}\\",\\"password\\":\\"\${ARGOCD_PASS}\\"}" | \\
+                                grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+                              curl -sfk -X POST https://\${ARGOCD_SERVER}/api/v1/applications/\${APP_NAME}/sync \\
+                                -H "Authorization: Bearer \${ARGOCD_TOKEN}" \\
+                                -H "Content-Type: application/json" \\
+                                -d "{}"
                             """
                           }
                         }
                       }
                     }
                     post {
-                      failure { echo "Build failed for logiplan-terminal #${BUILD_NUMBER}" }
-                      success { echo "Deployed logiplan-webterminal:${BUILD_NUMBER}" }
+                      failure { echo "Build failed for logiplan-terminal" }
+                      success { echo "Deployed logiplan-webterminal" }
                     }
                   }
                 ''')
@@ -268,10 +259,10 @@ data:
                         steps {
                           withCredentials([usernamePassword(credentialsId: "ghcr-credentials", usernameVariable: "GHCR_USER", passwordVariable: "GHCR_TOKEN")]) {
                             sh """
-                              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-                              docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:latest .
-                              docker push ${IMAGE}:${BUILD_NUMBER}
-                              docker push ${IMAGE}:latest
+                              echo "\${GHCR_TOKEN}" | docker login ghcr.io -u "\${GHCR_USER}" --password-stdin
+                              docker build -t \${IMAGE}:\${BUILD_NUMBER} -t \${IMAGE}:latest .
+                              docker push \${IMAGE}:\${BUILD_NUMBER}
+                              docker push \${IMAGE}:latest
                             """
                           }
                         }
@@ -280,14 +271,14 @@ data:
                         steps {
                           withCredentials([usernamePassword(credentialsId: "github-credentials", usernameVariable: "GH_USER", passwordVariable: "GH_TOKEN")]) {
                             sh """
-                              git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-ui-${BUILD_NUMBER}
-                              cd /tmp/gitops-ui-${BUILD_NUMBER}
-                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webui:.*|image: ghcr.io/acaburaz/logiplan-webui:${BUILD_NUMBER}|" ${DEPLOY_FILE}
+                              git clone https://\${GH_USER}:\${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-ui-\${BUILD_NUMBER}
+                              cd /tmp/gitops-ui-\${BUILD_NUMBER}
+                              sed -i "s|image: ghcr.io/acaburaz/logiplan-webui:.*|image: ghcr.io/acaburaz/logiplan-webui:\${BUILD_NUMBER}|" \${DEPLOY_FILE}
                               git config user.email "jenkins@ci" && git config user.name "Jenkins"
-                              git add ${DEPLOY_FILE}
-                              git commit -m "ci: update logiplan-webui to build ${BUILD_NUMBER}" || echo "No changes"
+                              git add \${DEPLOY_FILE}
+                              git commit -m "ci: update logiplan-webui to build \${BUILD_NUMBER}" || echo "No changes"
                               git push || true
-                              rm -rf /tmp/gitops-ui-${BUILD_NUMBER}
+                              rm -rf /tmp/gitops-ui-\${BUILD_NUMBER}
                             """
                           }
                         }
@@ -296,16 +287,22 @@ data:
                         steps {
                           withCredentials([usernamePassword(credentialsId: "argocd-credentials", usernameVariable: "ARGOCD_USER", passwordVariable: "ARGOCD_PASS")]) {
                             sh """
-                              ARGOCD_TOKEN=\\$(curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/session -H "Content-Type: application/json" -d "{\\"username\\":\\"${ARGOCD_USER}\\",\\"password\\":\\"${ARGOCD_PASS}\\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-                              curl -sfk -X POST https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync -H "Authorization: Bearer \\${ARGOCD_TOKEN}" -H "Content-Type: application/json" -d "{}"
+                              ARGOCD_TOKEN=\$(curl -sfk -X POST https://\${ARGOCD_SERVER}/api/v1/session \\
+                                -H "Content-Type: application/json" \\
+                                -d "{\\"username\\":\\"\${ARGOCD_USER}\\",\\"password\\":\\"\${ARGOCD_PASS}\\"}" | \\
+                                grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+                              curl -sfk -X POST https://\${ARGOCD_SERVER}/api/v1/applications/\${APP_NAME}/sync \\
+                                -H "Authorization: Bearer \${ARGOCD_TOKEN}" \\
+                                -H "Content-Type: application/json" \\
+                                -d "{}"
                             """
                           }
                         }
                       }
                     }
                     post {
-                      failure { echo "Build failed for logiplan-ui #${BUILD_NUMBER}" }
-                      success { echo "Deployed logiplan-webui:${BUILD_NUMBER}" }
+                      failure { echo "Build failed for logiplan-ui" }
+                      success { echo "Deployed logiplan-webui" }
                     }
                   }
                 ''')
