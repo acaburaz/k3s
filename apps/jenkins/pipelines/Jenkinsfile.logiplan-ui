@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -15,7 +19,9 @@ pipeline {
             usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
           sh '''
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            docker build -t ghcr.io/acaburaz/logiplan-webui:$BUILD_NUMBER \
+            docker build \
+                         --build-arg NODE_OPTIONS=--max-old-space-size=4096 \
+                         -t ghcr.io/acaburaz/logiplan-webui:$BUILD_NUMBER \
                          -t ghcr.io/acaburaz/logiplan-webui:latest .
             docker push ghcr.io/acaburaz/logiplan-webui:$BUILD_NUMBER
             docker push ghcr.io/acaburaz/logiplan-webui:latest
