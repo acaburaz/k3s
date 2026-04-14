@@ -6,7 +6,6 @@ pipeline {
   environment {
     IMAGE    = "ghcr.io/acaburaz/logiplan"
     APP_NAME = "logiplan"
-    ARGOCD_SERVER = "argocd-server.argocd.svc.cluster.local:80"
   }
 
   stages {
@@ -55,20 +54,6 @@ pipeline {
       }
     }
 
-    stage('Sync ArgoCD') {
-      steps {
-        withCredentials([usernamePassword(
-          credentialsId: 'argocd-credentials',
-          usernameVariable: 'ARGOCD_USER',
-          passwordVariable: 'ARGOCD_PASS'
-        )]) {
-          sh '''
-            argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USER} --password ${ARGOCD_PASS} --insecure
-            argocd app sync ${APP_NAME} --insecure
-          '''
-        }
-      }
-    }
   }
 
   post {

@@ -40,21 +40,6 @@ pipeline {
         }
       }
     }
-    stage('Sync ArgoCD') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'argocd-credentials',
-            usernameVariable: 'ARGOCD_USER', passwordVariable: 'ARGOCD_PASS')]) {
-          sh '''
-            TOKEN=$(curl -sfk -X POST https://argocd-server.argocd.svc.cluster.local/api/v1/session \
-              -H "Content-Type: application/json" \
-              -d "{\"username\":\"$ARGOCD_USER\",\"password\":\"$ARGOCD_PASS\"}" | \
-              grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-            curl -sfk -X POST https://argocd-server.argocd.svc.cluster.local/api/v1/applications/logiplan-terminal/sync \
-              -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{}"
-          '''
-        }
-      }
-    }
   }
   post {
     failure { echo "Build failed for logiplan-terminal #${BUILD_NUMBER}" }
