@@ -1,0 +1,220 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-nodes-dashboard
+  namespace: cattle-monitoring-system
+  labels:
+    grafana_dashboard: "1"
+data:
+  nodes-overview.json: |
+    {
+      "title": "Cluster Nodes Overview",
+      "uid": "nodes-overview",
+      "schemaVersion": 38,
+      "version": 1,
+      "refresh": "30s",
+      "time": { "from": "now-1h", "to": "now" },
+      "panels": [
+        {
+          "type": "text",
+          "id": 1,
+          "gridPos": { "x": 0, "y": 0, "w": 24, "h": 2 },
+          "options": { "content": "## m700  —  Worker Node  (192.168.0.48)", "mode": "markdown" }
+        },
+        {
+          "type": "gauge",
+          "id": 2,
+          "title": "CPU Usage",
+          "gridPos": { "x": 0, "y": 2, "w": 8, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 70 },
+                { "color": "red", "value": 90 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m700\"}[5m])) * 100)",
+            "legendFormat": "CPU %",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "gauge",
+          "id": 3,
+          "title": "Memory Usage",
+          "gridPos": { "x": 8, "y": 2, "w": 8, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 75 },
+                { "color": "red", "value": 90 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m700\"} / node_memory_MemTotal_bytes{node=\"m700\"}) * 100",
+            "legendFormat": "Memory %",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "gauge",
+          "id": 4,
+          "title": "Disk Usage  /",
+          "gridPos": { "x": 16, "y": 2, "w": 8, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 75 },
+                { "color": "red", "value": 90 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "(1 - node_filesystem_avail_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+            "legendFormat": "Disk %",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "timeseries",
+          "id": 5,
+          "title": "m700 — CPU / Memory / Disk over time",
+          "gridPos": { "x": 0, "y": 8, "w": 24, "h": 7 },
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+          "targets": [
+            {
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m700\"}[5m])) * 100)",
+              "legendFormat": "CPU",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            },
+            {
+              "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m700\"} / node_memory_MemTotal_bytes{node=\"m700\"}) * 100",
+              "legendFormat": "Memory",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            },
+            {
+              "expr": "(1 - node_filesystem_avail_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+              "legendFormat": "Disk",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": 10,
+          "gridPos": { "x": 0, "y": 15, "w": 24, "h": 2 },
+          "options": { "content": "## m710q  —  Control Plane  (192.168.0.134)", "mode": "markdown" }
+        },
+        {
+          "type": "gauge",
+          "id": 11,
+          "title": "CPU Usage",
+          "gridPos": { "x": 0, "y": 17, "w": 8, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 70 },
+                { "color": "red", "value": 90 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m710q\"}[5m])) * 100)",
+            "legendFormat": "CPU %",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "gauge",
+          "id": 12,
+          "title": "Memory Usage",
+          "gridPos": { "x": 8, "y": 17, "w": 8, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 75 },
+                { "color": "red", "value": 90 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m710q\"} / node_memory_MemTotal_bytes{node=\"m710q\"}) * 100",
+            "legendFormat": "Memory %",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "gauge",
+          "id": 13,
+          "title": "Disk Usage  /",
+          "gridPos": { "x": 16, "y": 17, "w": 8, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 75 },
+                { "color": "red", "value": 90 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "(1 - node_filesystem_avail_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+            "legendFormat": "Disk %",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "timeseries",
+          "id": 14,
+          "title": "m710q — CPU / Memory / Disk over time",
+          "gridPos": { "x": 0, "y": 23, "w": 24, "h": 7 },
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+          "targets": [
+            {
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m710q\"}[5m])) * 100)",
+              "legendFormat": "CPU",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            },
+            {
+              "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m710q\"} / node_memory_MemTotal_bytes{node=\"m710q\"}) * 100",
+              "legendFormat": "Memory",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            },
+            {
+              "expr": "(1 - node_filesystem_avail_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+              "legendFormat": "Disk",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            }
+          ]
+        }
+      ],
+      "templating": {
+        "list": [{
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "hide": 0,
+          "label": "Datasource"
+        }]
+      }
+    }
