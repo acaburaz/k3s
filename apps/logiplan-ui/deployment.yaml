@@ -77,7 +77,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: testui-preview.logiplan.se
+    - host: testapp-preview.logiplan.se
       http:
         paths:
           - backend:
@@ -89,5 +89,5 @@ spec:
             pathType: Prefix
   tls:
     - hosts:
-        - testui-preview.logiplan.se
-      secretName: testui-preview-tls
+        - testapp-preview.logiplan.se
+      secretName: testapp-preview-tls

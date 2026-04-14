@@ -10,7 +10,7 @@ data:
         192.168.0.134 testapp-preview.logiplan.se
         192.168.0.134 testapi-preview.logiplan.se
         192.168.0.134 testterminal-preview.logiplan.se
-        192.168.0.134 testui-preview.logiplan.se
+        192.168.0.134 testapp-preview.logiplan.se
         192.168.0.134 sonarqube.logiplan.se
         fallthrough
       }
