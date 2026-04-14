@@ -46,12 +46,6 @@ data:
                   description: "Azure DevOps — LogiPlanWebApp source repo"
                   username: "${LOGIPLAN_USER}"
                   password: "${LOGIPLAN_TOKEN}"
-              - usernamePassword:
-                  scope: GLOBAL
-                  id: "argocd-credentials"
-                  description: "ArgoCD admin"
-                  username: "${ARGOCD_USER}"
-                  password: "${ARGOCD_PASS}"
 
     jobs:
       - script: |
