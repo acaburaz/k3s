@@ -38,7 +38,7 @@ data:
             }
           },
           "targets": [{
-            "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m700\"}[5m])) * 100)",
+            "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"192.168.0.48:9796\"}[5m])) * 100)",
             "legendFormat": "CPU %",
             "datasource": { "type": "prometheus", "uid": "$datasource" }
           }]
@@ -60,7 +60,7 @@ data:
             }
           },
           "targets": [{
-            "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m700\"} / node_memory_MemTotal_bytes{node=\"m700\"}) * 100",
+            "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"192.168.0.48:9796\"} / node_memory_MemTotal_bytes{instance=\"192.168.0.48:9796\"}) * 100",
             "legendFormat": "Memory %",
             "datasource": { "type": "prometheus", "uid": "$datasource" }
           }]
@@ -82,7 +82,7 @@ data:
             }
           },
           "targets": [{
-            "expr": "(1 - node_filesystem_avail_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+            "expr": "(1 - node_filesystem_avail_bytes{instance=\"192.168.0.48:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"192.168.0.48:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
             "legendFormat": "Disk %",
             "datasource": { "type": "prometheus", "uid": "$datasource" }
           }]
@@ -95,17 +95,17 @@ data:
           "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
           "targets": [
             {
-              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m700\"}[5m])) * 100)",
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"192.168.0.48:9796\"}[5m])) * 100)",
               "legendFormat": "CPU",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
-              "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m700\"} / node_memory_MemTotal_bytes{node=\"m700\"}) * 100",
+              "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"192.168.0.48:9796\"} / node_memory_MemTotal_bytes{instance=\"192.168.0.48:9796\"}) * 100",
               "legendFormat": "Memory",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
-              "expr": "(1 - node_filesystem_avail_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m700\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+              "expr": "(1 - node_filesystem_avail_bytes{instance=\"192.168.0.48:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"192.168.0.48:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
               "legendFormat": "Disk",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             }
@@ -134,7 +134,7 @@ data:
             }
           },
           "targets": [{
-            "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m710q\"}[5m])) * 100)",
+            "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"192.168.0.134:9796\"}[5m])) * 100)",
             "legendFormat": "CPU %",
             "datasource": { "type": "prometheus", "uid": "$datasource" }
           }]
@@ -156,7 +156,7 @@ data:
             }
           },
           "targets": [{
-            "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m710q\"} / node_memory_MemTotal_bytes{node=\"m710q\"}) * 100",
+            "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"192.168.0.134:9796\"} / node_memory_MemTotal_bytes{instance=\"192.168.0.134:9796\"}) * 100",
             "legendFormat": "Memory %",
             "datasource": { "type": "prometheus", "uid": "$datasource" }
           }]
@@ -178,7 +178,7 @@ data:
             }
           },
           "targets": [{
-            "expr": "(1 - node_filesystem_avail_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+            "expr": "(1 - node_filesystem_avail_bytes{instance=\"192.168.0.134:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"192.168.0.134:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
             "legendFormat": "Disk %",
             "datasource": { "type": "prometheus", "uid": "$datasource" }
           }]
@@ -191,17 +191,17 @@ data:
           "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
           "targets": [
             {
-              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",node=\"m710q\"}[5m])) * 100)",
+              "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"192.168.0.134:9796\"}[5m])) * 100)",
               "legendFormat": "CPU",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
-              "expr": "(1 - node_memory_MemAvailable_bytes{node=\"m710q\"} / node_memory_MemTotal_bytes{node=\"m710q\"}) * 100",
+              "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"192.168.0.134:9796\"} / node_memory_MemTotal_bytes{instance=\"192.168.0.134:9796\"}) * 100",
               "legendFormat": "Memory",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
-              "expr": "(1 - node_filesystem_avail_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{node=\"m710q\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
+              "expr": "(1 - node_filesystem_avail_bytes{instance=\"192.168.0.134:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"192.168.0.134:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
               "legendFormat": "Disk",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             }
