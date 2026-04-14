@@ -74,6 +74,8 @@ spec:
             - containerPort: 50000
               name: agent
           env:
+            - name: TZ
+              value: "Europe/Stockholm"
             - name: JAVA_OPTS
               value: "-Djenkins.install.runSetupWizard=false"
             - name: CASC_JENKINS_CONFIG
