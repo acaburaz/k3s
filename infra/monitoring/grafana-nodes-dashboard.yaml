@@ -11,7 +11,7 @@ data:
       "title": "Cluster Nodes Overview",
       "uid": "nodes-overview",
       "schemaVersion": 38,
-      "version": 1,
+      "version": 2,
       "refresh": "30s",
       "time": { "from": "now-1h", "to": "now" },
       "panels": [
@@ -25,11 +25,10 @@ data:
           "type": "gauge",
           "id": 2,
           "title": "CPU Usage",
-          "gridPos": { "x": 0, "y": 2, "w": 8, "h": 6 },
+          "gridPos": { "x": 0, "y": 2, "w": 6, "h": 6 },
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
-              "min": 0, "max": 100,
+              "unit": "percent", "min": 0, "max": 100,
               "thresholds": { "mode": "absolute", "steps": [
                 { "color": "green", "value": null },
                 { "color": "yellow", "value": 70 },
@@ -47,11 +46,10 @@ data:
           "type": "gauge",
           "id": 3,
           "title": "Memory Usage",
-          "gridPos": { "x": 8, "y": 2, "w": 8, "h": 6 },
+          "gridPos": { "x": 6, "y": 2, "w": 6, "h": 6 },
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
-              "min": 0, "max": 100,
+              "unit": "percent", "min": 0, "max": 100,
               "thresholds": { "mode": "absolute", "steps": [
                 { "color": "green", "value": null },
                 { "color": "yellow", "value": 75 },
@@ -69,11 +67,10 @@ data:
           "type": "gauge",
           "id": 4,
           "title": "Disk Usage  /",
-          "gridPos": { "x": 16, "y": 2, "w": 8, "h": 6 },
+          "gridPos": { "x": 12, "y": 2, "w": 6, "h": 6 },
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
-              "min": 0, "max": 100,
+              "unit": "percent", "min": 0, "max": 100,
               "thresholds": { "mode": "absolute", "steps": [
                 { "color": "green", "value": null },
                 { "color": "yellow", "value": 75 },
@@ -88,25 +85,51 @@ data:
           }]
         },
         {
-          "type": "timeseries",
+          "type": "gauge",
           "id": 5,
-          "title": "m700 — CPU / Memory / Disk over time",
+          "title": "CPU Temperature",
+          "gridPos": { "x": 18, "y": 2, "w": 6, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius", "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 70 },
+                { "color": "red", "value": 85 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "avg(node_hwmon_temp_celsius{instance=\"192.168.0.48:9796\",chip=~\"platform_coretemp.*\",sensor=\"temp1\"})",
+            "legendFormat": "CPU °C",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "timeseries",
+          "id": 6,
+          "title": "m700 — CPU / Memory / Disk / Temp over time",
           "gridPos": { "x": 0, "y": 8, "w": 24, "h": 7 },
-          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+          "fieldConfig": { "defaults": { "min": 0 } },
           "targets": [
             {
               "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"192.168.0.48:9796\"}[5m])) * 100)",
-              "legendFormat": "CPU",
+              "legendFormat": "CPU %",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
               "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"192.168.0.48:9796\"} / node_memory_MemTotal_bytes{instance=\"192.168.0.48:9796\"}) * 100",
-              "legendFormat": "Memory",
+              "legendFormat": "Memory %",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
               "expr": "(1 - node_filesystem_avail_bytes{instance=\"192.168.0.48:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"192.168.0.48:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
-              "legendFormat": "Disk",
+              "legendFormat": "Disk %",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            },
+            {
+              "expr": "avg(node_hwmon_temp_celsius{instance=\"192.168.0.48:9796\",chip=~\"platform_coretemp.*\",sensor=\"temp1\"})",
+              "legendFormat": "CPU °C",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             }
           ]
@@ -121,11 +144,10 @@ data:
           "type": "gauge",
           "id": 11,
           "title": "CPU Usage",
-          "gridPos": { "x": 0, "y": 17, "w": 8, "h": 6 },
+          "gridPos": { "x": 0, "y": 17, "w": 6, "h": 6 },
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
-              "min": 0, "max": 100,
+              "unit": "percent", "min": 0, "max": 100,
               "thresholds": { "mode": "absolute", "steps": [
                 { "color": "green", "value": null },
                 { "color": "yellow", "value": 70 },
@@ -143,11 +165,10 @@ data:
           "type": "gauge",
           "id": 12,
           "title": "Memory Usage",
-          "gridPos": { "x": 8, "y": 17, "w": 8, "h": 6 },
+          "gridPos": { "x": 6, "y": 17, "w": 6, "h": 6 },
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
-              "min": 0, "max": 100,
+              "unit": "percent", "min": 0, "max": 100,
               "thresholds": { "mode": "absolute", "steps": [
                 { "color": "green", "value": null },
                 { "color": "yellow", "value": 75 },
@@ -165,11 +186,10 @@ data:
           "type": "gauge",
           "id": 13,
           "title": "Disk Usage  /",
-          "gridPos": { "x": 16, "y": 17, "w": 8, "h": 6 },
+          "gridPos": { "x": 12, "y": 17, "w": 6, "h": 6 },
           "fieldConfig": {
             "defaults": {
-              "unit": "percent",
-              "min": 0, "max": 100,
+              "unit": "percent", "min": 0, "max": 100,
               "thresholds": { "mode": "absolute", "steps": [
                 { "color": "green", "value": null },
                 { "color": "yellow", "value": 75 },
@@ -184,25 +204,51 @@ data:
           }]
         },
         {
-          "type": "timeseries",
+          "type": "gauge",
           "id": 14,
-          "title": "m710q — CPU / Memory / Disk over time",
+          "title": "CPU Temperature",
+          "gridPos": { "x": 18, "y": 17, "w": 6, "h": 6 },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius", "min": 0, "max": 100,
+              "thresholds": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 70 },
+                { "color": "red", "value": 85 }
+              ]}
+            }
+          },
+          "targets": [{
+            "expr": "avg(node_hwmon_temp_celsius{instance=\"192.168.0.134:9796\",chip=~\"platform_coretemp.*\",sensor=\"temp1\"})",
+            "legendFormat": "CPU °C",
+            "datasource": { "type": "prometheus", "uid": "$datasource" }
+          }]
+        },
+        {
+          "type": "timeseries",
+          "id": 15,
+          "title": "m710q — CPU / Memory / Disk / Temp over time",
           "gridPos": { "x": 0, "y": 23, "w": 24, "h": 7 },
-          "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+          "fieldConfig": { "defaults": { "min": 0 } },
           "targets": [
             {
               "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\",instance=\"192.168.0.134:9796\"}[5m])) * 100)",
-              "legendFormat": "CPU",
+              "legendFormat": "CPU %",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
               "expr": "(1 - node_memory_MemAvailable_bytes{instance=\"192.168.0.134:9796\"} / node_memory_MemTotal_bytes{instance=\"192.168.0.134:9796\"}) * 100",
-              "legendFormat": "Memory",
+              "legendFormat": "Memory %",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             },
             {
               "expr": "(1 - node_filesystem_avail_bytes{instance=\"192.168.0.134:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"} / node_filesystem_size_bytes{instance=\"192.168.0.134:9796\",mountpoint=\"/\",fstype!=\"tmpfs\"}) * 100",
-              "legendFormat": "Disk",
+              "legendFormat": "Disk %",
+              "datasource": { "type": "prometheus", "uid": "$datasource" }
+            },
+            {
+              "expr": "avg(node_hwmon_temp_celsius{instance=\"192.168.0.134:9796\",chip=~\"platform_coretemp.*\",sensor=\"temp1\"})",
+              "legendFormat": "CPU °C",
               "datasource": { "type": "prometheus", "uid": "$datasource" }
             }
           ]
