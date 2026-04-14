@@ -13,6 +13,8 @@ spec:
       labels:
         app: jenkins
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: m710q
       serviceAccountName: jenkins
       securityContext:
         fsGroup: 1000
@@ -33,11 +35,6 @@ spec:
                 mv /tmp/docker/docker /var/jenkins_home/bin/docker
                 chmod +x /var/jenkins_home/bin/docker
                 echo "Docker CLI installed"
-              fi
-              if [ ! -f /var/jenkins_home/bin/argocd ]; then
-                wget -qO /var/jenkins_home/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.13.3/argocd-linux-amd64
-                chmod +x /var/jenkins_home/bin/argocd
-                echo "ArgoCD CLI installed"
               fi
               chown -R 1000:1000 /var/jenkins_home/bin
           securityContext:
@@ -100,16 +97,6 @@ spec:
                 secretKeyRef:
                   name: jenkins-credentials
                   key: GITHUB_TOKEN
-            - name: ARGOCD_USER
-              valueFrom:
-                secretKeyRef:
-                  name: jenkins-credentials
-                  key: ARGOCD_USER
-            - name: ARGOCD_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: jenkins-credentials
-                  key: ARGOCD_PASS
             - name: MYNFORKORT_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -138,9 +125,6 @@ spec:
             - name: jenkins-data
               mountPath: /usr/local/bin/docker
               subPath: bin/docker
-            - name: jenkins-data
-              mountPath: /usr/local/bin/argocd
-              subPath: bin/argocd
             - name: casc-config
               mountPath: /var/jenkins_home/casc.yaml
               subPath: casc.yaml
