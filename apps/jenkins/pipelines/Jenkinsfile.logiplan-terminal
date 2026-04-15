@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   stages {
     stage('Checkout') {
       steps {
@@ -43,6 +47,20 @@ pipeline {
   }
   post {
     failure { echo "Build failed for logiplan-terminal #${BUILD_NUMBER}" }
-    success { echo "Deployed logiplan-webterminal:${BUILD_NUMBER}" }
+    success {
+      echo "Deployed logiplan-webterminal:${BUILD_NUMBER}"
+      withCredentials([usernamePassword(credentialsId: 'ghcr-credentials',
+          usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
+        sh '''
+          curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
+            "https://api.github.com/user/packages/container/logiplan-webterminal/versions?per_page=100" | \
+            python3 -c "import sys,json; [print(v['id']) for v in json.load(sys.stdin)[5:]]" | \
+            while read VID; do
+              curl -s -X DELETE -H "Authorization: Bearer $GHCR_TOKEN" \
+                "https://api.github.com/user/packages/container/logiplan-webterminal/versions/$VID" || true
+            done
+        '''
+      }
+    }
   }
 }

@@ -58,13 +58,13 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://github.com/acaburaz/mynforkort')
-                      credentials('mynforkort-scm')
+                      url('https://github.com/acaburaz/k3s')
+                      credentials('github-credentials')
                     }
                     branch('*/main')
                   }
                 }
-                scriptPath('Jenkinsfile')
+                scriptPath('apps/jenkins/pipelines/Jenkinsfile.mynforkort')
                 lightweight(true)
               }
             }
@@ -79,13 +79,13 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp')
-                      credentials('logiplan-scm')
+                      url('https://github.com/acaburaz/k3s')
+                      credentials('github-credentials')
                     }
-                    branch('*/develop')
+                    branch('*/main')
                   }
                 }
-                scriptPath('Jenkinsfile')
+                scriptPath('apps/jenkins/pipelines/Jenkinsfile.logiplan-api')
                 lightweight(true)
               }
             }
@@ -100,13 +100,13 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebTerminal')
-                      credentials('logiplan-scm')
+                      url('https://github.com/acaburaz/k3s')
+                      credentials('github-credentials')
                     }
-                    branch('*/develop')
+                    branch('*/main')
                   }
                 }
-                scriptPath('Jenkinsfile')
+                scriptPath('apps/jenkins/pipelines/Jenkinsfile.logiplan-terminal')
                 lightweight(true)
               }
             }
@@ -121,13 +121,13 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebUI')
-                      credentials('logiplan-scm')
+                      url('https://github.com/acaburaz/k3s')
+                      credentials('github-credentials')
                     }
-                    branch('*/develop')
+                    branch('*/main')
                   }
                 }
-                scriptPath('Jenkinsfile')
+                scriptPath('apps/jenkins/pipelines/Jenkinsfile.logiplan-ui')
                 lightweight(true)
               }
             }

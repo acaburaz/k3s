@@ -1,23 +1,27 @@
-// Place this file as 'Jenkinsfile' in the root of acaburaz/mynforkort repo
-// Jenkins polls every 2 min, builds on new commits
-
 pipeline {
   agent any
 
+  options {
+    disableConcurrentBuilds()
+  }
+
   environment {
-    IMAGE        = "ghcr.io/acaburaz/mynforkort"
-    APP_NAME     = "mynforkort"
-    GITOPS_REPO  = "https://github.com/acaburaz/k3s"
+    IMAGE       = "ghcr.io/acaburaz/mynforkort"
+    APP_NAME    = "mynforkort"
   }
 
   stages {
+    stage('Checkout') {
+      steps {
+        checkout([$class: 'GitSCM', branches: [[name: '*/main']],
+          userRemoteConfigs: [[url: 'https://github.com/acaburaz/mynforkort',
+          credentialsId: 'mynforkort-scm']]])
+      }
+    }
     stage('Build & Push Image') {
       steps {
-        withCredentials([usernamePassword(
-          credentialsId: 'ghcr-credentials',
-          usernameVariable: 'GHCR_USER',
-          passwordVariable: 'GHCR_TOKEN'
-        )]) {
+        withCredentials([usernamePassword(credentialsId: 'ghcr-credentials',
+            usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
           sh '''
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:latest .
@@ -27,14 +31,10 @@ pipeline {
         }
       }
     }
-
-    stage('Update Image Tag in GitOps Repo') {
+    stage('Update Image Tag') {
       steps {
-        withCredentials([usernamePassword(
-          credentialsId: 'github-credentials',
-          usernameVariable: 'GH_USER',
-          passwordVariable: 'GH_TOKEN'
-        )]) {
+        withCredentials([usernamePassword(credentialsId: 'github-credentials',
+            usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
           sh '''
             git clone https://${GH_USER}:${GH_TOKEN}@github.com/acaburaz/k3s.git /tmp/gitops-${BUILD_NUMBER}
             cd /tmp/gitops-${BUILD_NUMBER}
@@ -49,11 +49,24 @@ pipeline {
         }
       }
     }
-
   }
 
   post {
     failure { echo "Build failed for ${APP_NAME} #${BUILD_NUMBER}" }
-    success { echo "Deployed ${APP_NAME}:${BUILD_NUMBER}" }
+    success {
+      echo "Deployed ${APP_NAME}:${BUILD_NUMBER}"
+      withCredentials([usernamePassword(credentialsId: 'ghcr-credentials',
+          usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
+        sh '''
+          curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
+            "https://api.github.com/user/packages/container/mynforkort/versions?per_page=100" | \
+            python3 -c "import sys,json; [print(v['id']) for v in json.load(sys.stdin)[5:]]" | \
+            while read VID; do
+              curl -s -X DELETE -H "Authorization: Bearer $GHCR_TOKEN" \
+                "https://api.github.com/user/packages/container/mynforkort/versions/$VID" || true
+            done
+        '''
+      }
+    }
   }
 }
