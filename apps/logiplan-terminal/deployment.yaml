@@ -5,9 +5,9 @@ metadata:
   namespace: apps
 spec:
   ports:
-    - port: 5000
+    - port: 80
       protocol: TCP
-      targetPort: 5000
+      targetPort: 80
   selector:
     app: logiplan-webterminal
   type: ClusterIP
@@ -38,30 +38,26 @@ spec:
         - name: webterminal
           image: ghcr.io/acaburaz/logiplan-webterminal:34
           imagePullPolicy: Always
-          env:
-            - name: ASPNETCORE_URLS
-              value: http://+:5000
-          envFrom:
-            - secretRef:
-                name: logiplan-webterminal-secrets
           ports:
-            - containerPort: 5000
+            - containerPort: 80
               protocol: TCP
           readinessProbe:
             failureThreshold: 3
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10
             periodSeconds: 5
             successThreshold: 1
-            tcpSocket:
-              port: 5000
+            httpGet:
+              path: /
+              port: 80
             timeoutSeconds: 1
           livenessProbe:
             failureThreshold: 3
-            initialDelaySeconds: 30
+            initialDelaySeconds: 20
             periodSeconds: 10
             successThreshold: 1
-            tcpSocket:
-              port: 5000
+            httpGet:
+              path: /
+              port: 80
             timeoutSeconds: 1
           resources:
             limits:
@@ -88,7 +84,7 @@ spec:
               service:
                 name: logiplan-webterminal
                 port:
-                  number: 5000
+                  number: 80
             path: /
             pathType: Prefix
   tls:
