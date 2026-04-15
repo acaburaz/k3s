@@ -52,7 +52,6 @@ data:
           pipelineJob('mynforkort-build') {
             description('Build and deploy mynforkort on new commits')
             logRotator { numToKeep(5) }
-            concurrentBuild(false)
             triggers { scm('H/2 * * * *') }
             definition {
               cpsScm {
@@ -74,7 +73,6 @@ data:
           pipelineJob('logiplan-api-build') {
             description('Build and deploy logiplan-api on new commits')
             logRotator { numToKeep(5) }
-            concurrentBuild(false)
             triggers { scm('H/2 * * * *') }
             definition {
               cpsScm {
@@ -96,7 +94,6 @@ data:
           pipelineJob('logiplan-terminal-build') {
             description('Build and deploy LogiPlanWebTerminal on new commits')
             logRotator { numToKeep(5) }
-            concurrentBuild(false)
             triggers { scm('H/2 * * * *') }
             definition {
               cpsScm {
@@ -118,7 +115,6 @@ data:
           pipelineJob('logiplan-ui-build') {
             description('Build and deploy LogiPlanWebUI on new commits')
             logRotator { numToKeep(5) }
-            concurrentBuild(false)
             triggers { scm('H/2 * * * *') }
             definition {
               cpsScm {
