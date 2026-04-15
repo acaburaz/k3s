@@ -65,7 +65,7 @@ data:
                   }
                 }
                 scriptPath('apps/jenkins/pipelines/Jenkinsfile.mynforkort')
-                lightweight(true)
+                lightweight(false)
               }
             }
           }
@@ -86,7 +86,7 @@ data:
                   }
                 }
                 scriptPath('apps/jenkins/pipelines/Jenkinsfile.logiplan-api')
-                lightweight(true)
+                lightweight(false)
               }
             }
           }
@@ -107,7 +107,7 @@ data:
                   }
                 }
                 scriptPath('apps/jenkins/pipelines/Jenkinsfile.logiplan-terminal')
-                lightweight(true)
+                lightweight(false)
               }
             }
           }
@@ -128,7 +128,7 @@ data:
                   }
                 }
                 scriptPath('apps/jenkins/pipelines/Jenkinsfile.logiplan-ui')
-                lightweight(true)
+                lightweight(false)
               }
             }
           }
