@@ -61,7 +61,7 @@ data:
                       url('https://github.com/acaburaz/k3s')
                       credentials('github-credentials')
                     }
-                    branch('*/main')
+                    branch('*/master')
                   }
                 }
                 scriptPath('apps/jenkins/pipelines/Jenkinsfile.mynforkort')
