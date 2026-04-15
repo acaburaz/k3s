@@ -70,7 +70,7 @@ spec:
                 secretKeyRef:
                   key: mysql-root-password
                   name: mysql-secret
-          image: ghcr.io/acaburaz/mynforkort:40
+          image: ghcr.io/acaburaz/mynforkort:41
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3
