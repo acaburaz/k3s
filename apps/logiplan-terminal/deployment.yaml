@@ -36,7 +36,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: webterminal
-          image: ghcr.io/acaburaz/logiplan-webterminal:19
+          image: ghcr.io/acaburaz/logiplan-webterminal:20
           imagePullPolicy: Always
           env:
             - name: ASPNETCORE_URLS
