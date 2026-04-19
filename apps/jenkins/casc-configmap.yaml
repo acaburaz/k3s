@@ -133,6 +133,28 @@ data:
             }
           }
 
+      - script: |
+          pipelineJob('lorecreator-ai-build') {
+            description('Build and deploy lorecreator-ai on new commits')
+            logRotator { numToKeep(5) }
+            triggers { scm('H/2 * * * *') }
+            definition {
+              cpsScm {
+                scm {
+                  git {
+                    remote {
+                      url('https://github.com/acaburaz/lorecreator-ai')
+                      credentials('github-credentials')
+                    }
+                    branch('*/main')
+                  }
+                }
+                scriptPath('Jenkinsfile')
+                lightweight(true)
+              }
+            }
+          }
+
     unclassified:
       location:
         url: "http://192.168.0.134:32743/"
