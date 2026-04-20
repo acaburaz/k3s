@@ -8,6 +8,15 @@ data:
     jenkins:
       systemMessage: "Jenkins — k3s GitOps CI/CD"
       numExecutors: 1
+      globalNodeProperties:
+        - envVars:
+            env:
+              - key: "VITE_SUPABASE_URL"
+                value: "${VITE_SUPABASE_URL}"
+              - key: "VITE_SUPABASE_PUBLISHABLE_KEY"
+                value: "${VITE_SUPABASE_PUBLISHABLE_KEY}"
+              - key: "VITE_SUPABASE_PROJECT_ID"
+                value: "${VITE_SUPABASE_PROJECT_ID}"
       securityRealm:
         local:
           allowsSignup: false
