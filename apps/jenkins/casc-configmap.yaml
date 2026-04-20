@@ -88,7 +88,7 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp')
+                      url('https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp')
                       credentials('logiplan-scm')
                     }
                     branch('*/develop')
@@ -109,7 +109,7 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebTerminal')
+                      url('https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebTerminal')
                       credentials('logiplan-scm')
                     }
                     branch('*/develop')
@@ -130,7 +130,7 @@ data:
                 scm {
                   git {
                     remote {
-                      url('https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebUI')
+                      url('https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebUI')
                       credentials('logiplan-scm')
                     }
                     branch('*/develop')

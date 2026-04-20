@@ -9,7 +9,7 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout([$class: 'GitSCM', branches: [[name: '*/develop']],
-          userRemoteConfigs: [[url: 'https://logiplan@dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp',
+          userRemoteConfigs: [[url: 'https://dev.azure.com/logiplan/LogiPlanWebApp/_git/LogiPlanWebApp',
           credentialsId: 'logiplan-scm']]])
       }
     }
