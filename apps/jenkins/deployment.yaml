@@ -116,6 +116,21 @@ spec:
                 secretKeyRef:
                   name: jenkins-credentials
                   key: LOGIPLAN_TOKEN
+            - name: VITE_SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: VITE_SUPABASE_URL
+            - name: VITE_SUPABASE_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: VITE_SUPABASE_PUBLISHABLE_KEY
+            - name: VITE_SUPABASE_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-credentials
+                  key: VITE_SUPABASE_PROJECT_ID
           resources:
             requests:
               cpu: 250m
