@@ -218,10 +218,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
   ignoreDifferences:
-    - group: apps
-      kind: Deployment
-      jsonPointers:
-        - /spec/template/spec/containers/0/image
     - group: ""
       kind: Service
       jsonPointers:
